@@ -342,32 +342,45 @@ def process_csv(file_path, email, stock_levels=None):
         for key, value in mapping.items():
             mapping_lookup[key.lower().strip()] = value
         
-        # Calculate daily ingredient usage
+        # Calculate daily ingredient usage (optimized for memory)
         daily_usage = {}
         found_items = set()
         all_items = set()
         
-        for _, row in df.iterrows():
-            item_name = str(row[item_col]).strip()
-            item_name_lower = item_name.lower().strip()
-            all_items.add(item_name)
+        # Process in chunks to reduce memory usage
+        chunk_size = 1000
+        for chunk_start in range(0, len(df), chunk_size):
+            chunk_end = min(chunk_start + chunk_size, len(df))
+            chunk_df = df.iloc[chunk_start:chunk_end]
             
-            # Get quantity (already cleaned and converted)
-            quantity = float(row['quantity'])
+            for _, row in chunk_df.iterrows():
+                try:
+                    item_name = str(row[item_col]).strip()
+                    item_name_lower = item_name.lower().strip()
+                    all_items.add(item_name)
+                    
+                    # Get quantity (already cleaned and converted)
+                    quantity = float(row['quantity'])
+                    
+                    # Get date (already parsed)
+                    date = row[date_col].date()
+                    
+                    # Find matching ingredient mapping (case-insensitive)
+                    if item_name_lower in mapping_lookup:
+                        found_items.add(item_name)
+                        ingredients = mapping_lookup[item_name_lower]
+                        for ingredient, amount_per_unit in ingredients.items():
+                            if ingredient not in daily_usage:
+                                daily_usage[ingredient] = {}
+                            if date not in daily_usage[ingredient]:
+                                daily_usage[ingredient][date] = 0
+                            daily_usage[ingredient][date] += amount_per_unit * quantity
+                except Exception as e:
+                    print(f"⚠ Error processing row: {e}")
+                    continue
             
-            # Get date (already parsed)
-            date = row[date_col].date()
-            
-            # Find matching ingredient mapping (case-insensitive)
-            if item_name_lower in mapping_lookup:
-                found_items.add(item_name)
-                ingredients = mapping_lookup[item_name_lower]
-                for ingredient, amount_per_unit in ingredients.items():
-                    if ingredient not in daily_usage:
-                        daily_usage[ingredient] = {}
-                    if date not in daily_usage[ingredient]:
-                        daily_usage[ingredient][date] = 0
-                    daily_usage[ingredient][date] += amount_per_unit * quantity
+            # Free memory after each chunk
+            del chunk_df
         
         # Convert to DataFrame for easier processing
         usage_data = []

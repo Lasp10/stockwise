@@ -80,7 +80,10 @@
      - Look for "Python Version" dropdown in settings
      - If not visible, check "Advanced" or "Environment" section
    - **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
+   - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --threads 2`
+     - `--timeout 120`: 2 minute timeout for CSV processing
+     - `--workers 2`: 2 worker processes
+     - `--threads 2`: 2 threads per worker
    - **Plan**: Free (or paid if you need more resources)
 
 3. **If Python Version Option Not Available**:
