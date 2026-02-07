@@ -26,18 +26,39 @@ app.config['TEST_MODE'] = Config.TEST_MODE
 # Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# MongoDB connection
-try:
-    mongo_client = MongoClient(app.config['MONGODB_URI'])
-    db = mongo_client[app.config['MONGODB_DB_NAME']]
-    csv_collection = db['csv_uploads']
-    mappings_collection = db['ingredient_mappings']
-    alerts_collection = db['alerts']
-    print("✓ Connected to MongoDB")
-except Exception as e:
-    print(f"⚠ MongoDB connection error: {e}")
-    print("⚠ Continuing without MongoDB - using local storage fallback")
-    db = None
+# MongoDB connection - make it non-blocking and optional
+db = None
+csv_collection = None
+mappings_collection = None
+alerts_collection = None
+
+mongodb_uri = app.config.get('MONGODB_URI', '').strip()
+# Only try to connect if MongoDB URI is provided and not localhost (for production)
+if mongodb_uri and mongodb_uri != 'mongodb://localhost:27017/' and 'localhost' not in mongodb_uri:
+    try:
+        # Set a shorter timeout to avoid hanging
+        mongo_client = MongoClient(
+            mongodb_uri,
+            serverSelectionTimeoutMS=5000,  # 5 second timeout
+            connectTimeoutMS=5000
+        )
+        # Test connection
+        mongo_client.server_info()
+        db = mongo_client[app.config['MONGODB_DB_NAME']]
+        csv_collection = db['csv_uploads']
+        mappings_collection = db['ingredient_mappings']
+        alerts_collection = db['alerts']
+        print("✓ Connected to MongoDB")
+    except Exception as e:
+        print(f"⚠ MongoDB connection error: {e}")
+        print("⚠ Continuing without MongoDB - using local storage fallback")
+        db = None
+        csv_collection = None
+        mappings_collection = None
+        alerts_collection = None
+else:
+    print("⚠ MongoDB URI not configured or using localhost - running without MongoDB")
+    print("⚠ Data will not persist between restarts. Set MONGODB_URI environment variable for persistence.")
 
 # Hardcoded ingredient mapping for MVP
 # Format: {menu_item: {ingredient: amount_in_oz}}
@@ -57,13 +78,16 @@ def allowed_file(filename):
 
 def get_ingredient_mapping(email):
     """Get ingredient mapping from MongoDB, or return default"""
-    if db is not None:
-        mapping_doc = mappings_collection.find_one(
-            {'email': email},
-            sort=[('updated_at', -1)]
-        )
-        if mapping_doc and 'mapping' in mapping_doc:
-            return mapping_doc['mapping']
+    if db is not None and mappings_collection is not None:
+        try:
+            mapping_doc = mappings_collection.find_one(
+                {'email': email},
+                sort=[('updated_at', -1)]
+            )
+            if mapping_doc and 'mapping' in mapping_doc:
+                return mapping_doc['mapping']
+        except Exception as e:
+            print(f"⚠ Error reading mapping from MongoDB: {e}")
     return DEFAULT_INGREDIENT_MAPPING
 
 def store_ingredient_mapping(email, mapping=None):
@@ -71,26 +95,29 @@ def store_ingredient_mapping(email, mapping=None):
     if mapping is None:
         mapping = DEFAULT_INGREDIENT_MAPPING
     
-    if db is not None:
-        # Check if mapping exists
-        existing = mappings_collection.find_one({'email': email})
-        
-        mapping_doc = {
-            'email': email,
-            'mapping': mapping,
-            'updated_at': datetime.utcnow()
-        }
-        
-        if existing:
-            # Update existing mapping
-            mappings_collection.update_one(
-                {'email': email},
-                {'$set': mapping_doc}
-            )
-        else:
-            # Create new mapping
-            mapping_doc['created_at'] = datetime.utcnow()
-            mappings_collection.insert_one(mapping_doc)
+    if db is not None and mappings_collection is not None:
+        try:
+            # Check if mapping exists
+            existing = mappings_collection.find_one({'email': email})
+            
+            mapping_doc = {
+                'email': email,
+                'mapping': mapping,
+                'updated_at': datetime.utcnow()
+            }
+            
+            if existing:
+                # Update existing mapping
+                mappings_collection.update_one(
+                    {'email': email},
+                    {'$set': mapping_doc}
+                )
+            else:
+                # Create new mapping
+                mapping_doc['created_at'] = datetime.utcnow()
+                mappings_collection.insert_one(mapping_doc)
+        except Exception as e:
+            print(f"⚠ Error saving mapping to MongoDB: {e}")
     
     return mapping
 
@@ -393,15 +420,18 @@ def process_csv(file_path, email, stock_levels=None):
             }
         
         # Store results in MongoDB
-        if db is not None:
-            result_doc = {
-                'email': email,
-                'file_path': file_path,
-                'processed_at': datetime.utcnow(),
-                'forecast': forecast_results,
-                'usage_data': usage_df.to_dict('records')
-            }
-            csv_collection.insert_one(result_doc)
+        if db is not None and csv_collection is not None:
+            try:
+                result_doc = {
+                    'email': email,
+                    'file_path': file_path,
+                    'processed_at': datetime.utcnow(),
+                    'forecast': forecast_results,
+                    'usage_data': usage_df.to_dict('records')
+                }
+                csv_collection.insert_one(result_doc)
+            except Exception as e:
+                print(f"⚠ Error saving to MongoDB: {e}")
         
         return forecast_results, usage_df
         
@@ -459,15 +489,18 @@ def check_and_send_alerts(email, forecast_results):
                 alerts_info['alerts_sent'] += 1
                 
                 # Log alert in MongoDB
-                if db is not None:
-                    alert_doc = {
-                        'email': email,
-                        'ingredient': ingredient,
-                        'days_remaining': days_remaining,
-                        'sent_at': datetime.utcnow(),
-                        'email_configured': email_configured
-                    }
-                    alerts_collection.insert_one(alert_doc)
+                if db is not None and alerts_collection is not None:
+                    try:
+                        alert_doc = {
+                            'email': email,
+                            'ingredient': ingredient,
+                            'days_remaining': days_remaining,
+                            'sent_at': datetime.utcnow(),
+                            'email_configured': email_configured
+                        }
+                        alerts_collection.insert_one(alert_doc)
+                    except Exception as e:
+                        print(f"⚠ Error logging alert to MongoDB: {e}")
                     
             except Exception as e:
                 alerts_sent.append({
@@ -561,17 +594,20 @@ def api_forecast():
     if not email:
         return jsonify({'error': 'Email parameter required'}), 400
     
-    if db is not None:
-        latest = csv_collection.find_one(
-            {'email': email},
-            sort=[('processed_at', -1)]
-        )
-        if latest:
-            return jsonify({
-                'email': email,
-                'forecast': latest['forecast'],
-                'processed_at': latest['processed_at'].isoformat()
-            })
+    if db is not None and csv_collection is not None:
+        try:
+            latest = csv_collection.find_one(
+                {'email': email},
+                sort=[('processed_at', -1)]
+            )
+            if latest:
+                return jsonify({
+                    'email': email,
+                    'forecast': latest['forecast'],
+                    'processed_at': latest['processed_at'].isoformat()
+                })
+        except Exception as e:
+            print(f"⚠ Error reading from MongoDB: {e}")
     
     return jsonify({'error': 'No forecast found for this email'}), 404
 
