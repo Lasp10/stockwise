@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredient Mappings - StockWise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --atlassian-blue: #0052CC;
+            --atlassian-blue-hover: #0065FF;
+            --atlassian-blue-light: #DEEBFF;
+            --atlassian-text: #172B4D;
+            --atlassian-text-secondary: #42526E;
+            --atlassian-text-tertiary: #6B778C;
+            --atlassian-border: #DFE1E6;
+            --atlassian-background: #F4F5F7;
+            --atlassian-success: #00875A;
+            --atlassian-warning: #FF991F;
+            --atlassian-danger: #DE350B;
+            --atlassian-white: #FFFFFF;
+            --atlassian-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+            --atlassian-shadow-hover: 0 4px 8px -2px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: var(--atlassian-background);
+            color: var(--atlassian-text);
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.5;
+        }
+        
+        .header {
+            background: var(--atlassian-white);
+            border-bottom: 1px solid var(--atlassian-border);
+            padding: 16px 24px;
+            box-shadow: var(--atlassian-shadow);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--atlassian-text);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--atlassian-blue);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        
+        .page-header {
+            margin-bottom: 32px;
+        }
+        
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--atlassian-text);
+            margin-bottom: 8px;
+        }
+        
+        .page-header p {
+            font-size: 16px;
+            color: var(--atlassian-text-secondary);
+        }
+        
+        .card {
+            background: var(--atlassian-white);
+            border-radius: 4px;
+            border: 1px solid var(--atlassian-border);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--atlassian-shadow);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--atlassian-text);
+        }
+        
+        .form-hint {
+            font-size: 12px;
+            color: var(--atlassian-text-tertiary);
+            margin-top: 4px;
+        }
+        
+        input[type="email"],
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid var(--atlassian-border);
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--atlassian-text);
+            transition: all 0.2s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--atlassian-blue);
+            box-shadow: 0 0 0 2px var(--atlassian-blue-light);
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: var(--atlassian-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--atlassian-blue-hover);
+            box-shadow: var(--atlassian-shadow-hover);
+        }
+        
+        .btn-secondary {
+            background: var(--atlassian-white);
+            color: var(--atlassian-text);
+            border: 2px solid var(--atlassian-border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--atlassian-background);
+        }
+        
+        .btn-danger {
+            background: var(--atlassian-danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #BF2600;
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .alert-success {
+            background: #E3FCEF;
+            color: var(--atlassian-success);
+            border-left: 4px solid var(--atlassian-success);
+        }
+        
+        .alert-error {
+            background: #FFEBE6;
+            color: var(--atlassian-danger);
+            border-left: 4px solid var(--atlassian-danger);
+        }
+        
+        .mapping-item {
+            background: var(--atlassian-background);
+            border: 1px solid var(--atlassian-border);
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .mapping-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .mapping-item-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--atlassian-text);
+        }
+        
+        .ingredient-row {
+            display: grid;
+            grid-template-columns: 1fr 120px auto;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .ingredient-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--atlassian-border);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--atlassian-text-tertiary);
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="{{ url_for('upload') }}" class="logo">
+                <div class="logo-icon">SW</div>
+                <span>StockWise</span>
+            </a>
+            <div>
+                <a href="{{ url_for('upload') }}" class="btn btn-secondary">← Back to Upload</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="page-header">
+            <h1>Ingredient Mappings</h1>
+            <p>Map your menu items to ingredients and quantities</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="card">
+            <form method="POST" id="mappingForm">
+                <input type="hidden" name="action" value="save">
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" value="{{ email }}" required 
+                           placeholder="your@email.com">
+                    <div class="form-hint">Mappings are saved per email address</div>
+                </div>
+                
+                <div id="mappingsContainer">
+                    {% if mapping and mapping|length > 0 %}
+                        {% set item_index = 0 %}
+                        {% for menu_item, ingredients in mapping.items() %}
+                            {% if menu_item[0].isupper() or menu_item == menu_item.lower() %}
+                                {% set item_index = item_index + 1 %}
+                                <div class="mapping-item" data-item-index="{{ item_index }}">
+                                    <div class="mapping-item-header">
+                                        <div class="mapping-item-title">{{ menu_item }}</div>
+                                        <button type="button" onclick="deleteMappingItem(this)" class="btn btn-danger btn-small">Delete</button>
+                                    </div>
+                                    <input type="hidden" name="menu_item_{{ item_index }}" value="{{ menu_item }}">
+                                    
+                                    <div id="ingredients_{{ item_index }}">
+                                        {% set ing_index = 0 %}
+                                        {% for ing_name, ing_amount in ingredients.items() %}
+                                            {% set ing_index = ing_index + 1 %}
+                                            <div class="ingredient-row">
+                                                <input type="text" name="ingredient_name_{{ item_index }}_{{ ing_index }}" 
+                                                       value="{{ ing_name }}" placeholder="Ingredient name" required>
+                                                <input type="number" name="ingredient_{{ item_index }}_{{ ing_index }}" 
+                                                       value="{{ ing_amount }}" placeholder="oz" min="0" step="0.01" required>
+                                                <button type="button" onclick="removeIngredient(this)" class="btn btn-secondary btn-small">Remove</button>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <button type="button" onclick="addIngredient({{ item_index }})" class="btn btn-secondary btn-small" style="margin-top: 8px;">
+                                        + Add Ingredient
+                                    </button>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>No mappings yet. Add your first menu item below.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <button type="button" onclick="addMappingItem()" class="btn btn-secondary" style="margin-top: 16px;">
+                    + Add Menu Item
+                </button>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Save Mappings</button>
+                    <a href="{{ url_for('upload') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-bottom: 12px; font-size: 16px;">How it works</h3>
+            <p style="font-size: 14px; color: var(--atlassian-text-secondary); margin-bottom: 8px;">
+                1. Enter your email address (same one you use for CSV uploads)
+            </p>
+            <p style="font-size: 14px; color: var(--atlassian-text-secondary); margin-bottom: 8px;">
+                2. Add menu items and map them to ingredients (e.g., Latte → 8oz milk)
+            </p>
+            <p style="font-size: 14px; color: var(--atlassian-text-secondary); margin-bottom: 8px;">
+                3. Save your mappings - they'll be used automatically when you upload CSVs
+            </p>
+            <p style="font-size: 14px; color: var(--atlassian-text-secondary);">
+                4. You can add multiple ingredients per menu item (e.g., Mocha → 8oz milk + 2oz chocolate)
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        let itemCounter = {{ mapping|length if mapping else 0 }};
+        let ingredientCounters = {};
+        
+        function addMappingItem() {
+            itemCounter++;
+            const container = document.getElementById('mappingsContainer');
+            
+            // Remove empty state if present
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'mapping-item';
+            div.setAttribute('data-item-index', itemCounter);
+            div.innerHTML = `
+                <div class="mapping-item-header">
+                    <input type="text" name="menu_item_${itemCounter}" placeholder="Menu item name (e.g., Latte)" required 
+                           style="font-size: 16px; font-weight: 600; border: none; background: transparent; padding: 0;">
+                    <button type="button" onclick="deleteMappingItem(this)" class="btn btn-danger btn-small">Delete</button>
+                </div>
+                <div id="ingredients_${itemCounter}">
+                    <div class="ingredient-row">
+                        <input type="text" name="ingredient_name_${itemCounter}_1" placeholder="Ingredient name" required>
+                        <input type="number" name="ingredient_${itemCounter}_1" placeholder="oz" min="0" step="0.01" required>
+                        <button type="button" onclick="removeIngredient(this)" class="btn btn-secondary btn-small">Remove</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addIngredient(${itemCounter})" class="btn btn-secondary btn-small" style="margin-top: 8px;">
+                    + Add Ingredient
+                </button>
+            `;
+            container.appendChild(div);
+            ingredientCounters[itemCounter] = 1;
+        }
+        
+        function addIngredient(itemIndex) {
+            if (!ingredientCounters[itemIndex]) {
+                ingredientCounters[itemIndex] = 0;
+            }
+            ingredientCounters[itemIndex]++;
+            
+            const container = document.getElementById(`ingredients_${itemIndex}`);
+            const div = document.createElement('div');
+            div.className = 'ingredient-row';
+            div.innerHTML = `
+                <input type="text" name="ingredient_name_${itemIndex}_${ingredientCounters[itemIndex]}" placeholder="Ingredient name" required>
+                <input type="number" name="ingredient_${itemIndex}_${ingredientCounters[itemIndex]}" placeholder="oz" min="0" step="0.01" required>
+                <button type="button" onclick="removeIngredient(this)" class="btn btn-secondary btn-small">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeIngredient(button) {
+            button.closest('.ingredient-row').remove();
+        }
+        
+        function deleteMappingItem(button) {
+            if (confirm('Are you sure you want to delete this menu item mapping?')) {
+                button.closest('.mapping-item').remove();
+                
+                // Show empty state if no items left
+                const container = document.getElementById('mappingsContainer');
+                if (container.children.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>No mappings yet. Add your first menu item above.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Initialize ingredient counters for existing items
+        document.querySelectorAll('.mapping-item').forEach(item => {
+            const index = item.getAttribute('data-item-index');
+            const ingredientRows = item.querySelectorAll('.ingredient-row');
+            ingredientCounters[index] = ingredientRows.length;
+        });
+    </script>
+</body>
+</html>
