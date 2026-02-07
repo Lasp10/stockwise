@@ -75,6 +75,7 @@
 2. **Configure Service**:
    - **Name**: `stockwise` (or your choice)
    - **Environment**: `Python 3`
+   - **Python Version**: `3.11` (IMPORTANT: Python 3.13 not compatible with pandas)
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `python app.py`
    - **Plan**: Free (or paid if you need more resources)
