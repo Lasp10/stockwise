@@ -70,17 +70,25 @@
 1. **Create New Web Service**:
    - Go to https://render.com
    - Click "New +" → "Web Service"
-   - Connect your GitHub repository
+   - Connect your GitHub repository: `Lasp10/stockwise`
 
-2. **Configure Service**:
+2. **Configure Service** (CRITICAL - Follow exactly):
    - **Name**: `stockwise` (or your choice)
    - **Environment**: `Python 3`
-   - **Python Version**: `3.11.9` (CRITICAL: Must use 3.11, not 3.13 - pandas compatibility)
+   - **Python Version**: **MUST SET TO `3.11.9` or `3.11`** 
+     - ⚠️ **DO NOT use Python 3.13** - pandas will fail to build
+     - Look for "Python Version" dropdown in settings
+     - If not visible, check "Advanced" or "Environment" section
    - **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
    - **Start Command**: `python app.py`
    - **Plan**: Free (or paid if you need more resources)
-   
-   **IMPORTANT**: If Python version option doesn't appear, Render should auto-detect from `runtime.txt` file. If it still uses 3.13, manually set it in the service settings.
+
+3. **If Python Version Option Not Available**:
+   - Render may auto-detect from `runtime.txt` (should be 3.11.9)
+   - If it still uses 3.13, you MUST manually override:
+     - Go to Settings → Environment
+     - Add environment variable: `PYTHON_VERSION=3.11.9`
+     - Or use build command: `python3.11 -m pip install -r requirements.txt`
 
 3. **Add Environment Variables**:
    Click "Environment" tab and add:
