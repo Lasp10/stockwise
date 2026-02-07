@@ -2,8 +2,8 @@ services:
   - type: web
     name: stockwise
     env: python
-    pythonVersion: "3.11"
-    buildCommand: pip install -r requirements.txt
+    pythonVersion: "3.11.9"
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python app.py
     envVars:
       - key: MONGODB_URI

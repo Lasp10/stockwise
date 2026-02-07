@@ -75,10 +75,12 @@
 2. **Configure Service**:
    - **Name**: `stockwise` (or your choice)
    - **Environment**: `Python 3`
-   - **Python Version**: `3.11` (IMPORTANT: Python 3.13 not compatible with pandas)
-   - **Build Command**: `pip install -r requirements.txt`
+   - **Python Version**: `3.11.9` (CRITICAL: Must use 3.11, not 3.13 - pandas compatibility)
+   - **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
    - **Start Command**: `python app.py`
    - **Plan**: Free (or paid if you need more resources)
+   
+   **IMPORTANT**: If Python version option doesn't appear, Render should auto-detect from `runtime.txt` file. If it still uses 3.13, manually set it in the service settings.
 
 3. **Add Environment Variables**:
    Click "Environment" tab and add:
