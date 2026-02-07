@@ -80,7 +80,7 @@
      - Look for "Python Version" dropdown in settings
      - If not visible, check "Advanced" or "Environment" section
    - **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
-   - **Start Command**: `python app.py`
+   - **Start Command**: `gunicorn app:app --bind 0.0.0.0:$PORT`
    - **Plan**: Free (or paid if you need more resources)
 
 3. **If Python Version Option Not Available**:
